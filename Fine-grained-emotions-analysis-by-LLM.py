@@ -10,13 +10,9 @@ import json
 
 def normalize_rows(arr):
     row_sums = np.sum(arr, axis=1, keepdims=True)
-
-    # 确保和不为零
-    non_zero_row_sums = np.where(row_sums == 0, 1, row_sums)  # 避免除以零
-    # 对于和为零的行，使用均匀分布
+    non_zero_row_sums = np.where(row_sums == 0, 1, row_sums) 
     uniform_distribution = np.full(arr.shape[1], 1.0 / arr.shape[1])
 
-    # 如果和为零，则使用均匀分布；否则按行归一化
     normalized_arr = np.where(row_sums == 0, uniform_distribution, arr / non_zero_row_sums)
 
     return normalized_arr
@@ -49,21 +45,17 @@ with open("hierarchy.json", "r") as file:
 
 def read_dataset(file_path):
     df = pd.read_csv(file_path, sep='\t', header=None)
-    df.columns = ['Text', 'Labels', 'Index']  # 确保这里的列名数量与数据集中的列数匹配
+    df.columns = ['Text', 'Labels', 'Index']  
     return df
 
-# 接着读取数据集
 train_df = read_dataset('train.tsv')
 dev_df = read_dataset('dev.tsv')
 test_df = read_dataset('test.tsv')
 
 batch_size = 170
-
-# 随机打乱整个数据集
 random_seed = 42
 shuffled_df = dev_df.sample(frac=1, random_state=random_seed).reset_index(drop=True)
 
-# 处理多标签数据
 def process_multilabels(labels_col):
     def process_label(item):
         if isinstance(item, str):
@@ -73,9 +65,8 @@ def process_multilabels(labels_col):
         else:
             raise TypeError(f"Unexpected type for label: {type(item)}")
     return labels_col.apply(process_label)
-# 应用于 dev_df
+
 dev_df['Labels'] = process_multilabels(dev_df['Labels'])
-# 创建从索引映射到标签名称的字典
 index_to_label = {index: label for label, index in labels_mapping.items()}
 
 def create_prompt(text, labels_detail):
@@ -112,7 +103,6 @@ def classify_text(text, labels_detail, output_file):
         messages=[{"role": "system", "content": prompt}])
         response_text = response.choices[0].message.content
 
-        # 写入文件
         with open(output_file, 'a', encoding='utf-8') as file:
             file.write(f"Text: {text}\nGPT Response: {response_text}\n\n")
 
@@ -121,10 +111,9 @@ def classify_text(text, labels_detail, output_file):
         print(f"Error in classify_text: {e}")
         return "-1"
 
-dataset_to_predict = dev_df  # 或 test_df
+dataset_to_predict = dev_df  # or test_df
 
 def compute_batch_result(y_np_pred_binary, y_np_true_binany):
-    # 计算 Micro, Macro 和 Weighted F1 分数
     f1_micro = f1_score(y_np_true_binany, y_np_pred_binary, average='micro', zero_division=0)
     f1_macro = f1_score(y_np_true_binany, y_np_pred_binary, average='macro', zero_division=0)
     f1_weighted = f1_score(y_np_true_binany, y_np_pred_binary, average='weighted', zero_division=0)
@@ -141,7 +130,6 @@ def compute_batch_result(y_np_pred_binary, y_np_true_binany):
 
     return result_dict
 
-# 进行预测
 mlb = MultiLabelBinarizer()
 output_file = "gpt_responses.txt"
 predicted_results = []
@@ -152,17 +140,16 @@ def encode_single_labels(predicted_labels, labels_mapping):
     num_samples = 1
     num_labels = len(labels_mapping)
 
-    # 初始化全0的多热编码矩阵
     y_pred_binary = np.zeros((num_samples, num_labels), dtype=int)
     label_set = predicted_labels
-    if label_set:  # 确保 label_set 不为空
+    if label_set:  
         for label in label_set.split(','):
-            label_name = label.strip().lower()  # 清理标签并转换为小写
-            if label_name in labels_mapping:  # 检查是否存在于映射中
-                label_index = labels_mapping[label_name]  # 获取索引
-                y_pred_binary[0, label_index] = 1  # 在对应位置置1
+            label_name = label.strip().lower() 
+            if label_name in labels_mapping:  
+                label_index = labels_mapping[label_name]  
+                y_pred_binary[0, label_index] = 1 
             else:
-                print(f"Label not found in mapping: {label_name}")  # 如果找不到标签，打印出来
+                print(f"Label not found in mapping: {label_name}")  
 
     return y_pred_binary
 
