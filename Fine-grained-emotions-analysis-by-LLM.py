@@ -75,7 +75,6 @@ def create_prompt(text, labels_detail):
     prompt = (
         "Analyze the following text using a 'chain of thought' approach for multi-label emotion classification. "
         "Identify key phrases in the text that suggest emotional content. Then, explain how each phrase relates to specific emotions based on the categories provided below. At least return one label, If there is no specific emotion, return the label of neutral"
-        "Additionally, consider the hierarchical structure of these emotion categories as defined in 'hierarchy.json'. This file contains the parent-child relationships among the emotion categories, which should inform your analysis.\n\n"
         "Conclude your analysis with a clear and concise summary of all relevant emotions, formatted as a single line of comma-separated values under the heading 'Final Emotions:'. Ensure that this is the final output with no additional text following it.\n"
         f"Only use the following emotion categories:\n{labels_description}\n\n"
         "Additionally, consider the hierarchical structure provided below to understand the relationships among the emotion categories:\n"
