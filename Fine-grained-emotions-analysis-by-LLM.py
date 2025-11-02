@@ -2,7 +2,7 @@ import pandas as pd
 from openai import OpenAI
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics import f1_score, accuracy_score, hamming_loss
-from cost_matric import compute_cost_matrix, hierarchy, leaf_labels
+from cost_matrix import compute_cost_matrix, hierarchy, leaf_labels
 import numpy as np
 import ot
 from tqdm import tqdm
@@ -98,8 +98,7 @@ def classify_text(text, labels_detail, output_file):
     try:
         prompt = create_prompt(text, labels_detail)
         response = client.chat.completions.create(model="gpt-3.5-turbo",
-        #response=client.chat.completions.create(model="gpt-4-turbo",
-        messages=[{"role": "system", "content": prompt}])
+                                                  messages=[{"role": "system", "content": prompt}])
         response_text = response.choices[0].message.content
 
         with open(output_file, 'a', encoding='utf-8') as file:
@@ -112,13 +111,13 @@ def classify_text(text, labels_detail, output_file):
 
 dataset_to_predict = dev_df  # or test_df
 
-def compute_batch_result(y_np_pred_binary, y_np_true_binany):
-    f1_micro = f1_score(y_np_true_binany, y_np_pred_binary, average='micro', zero_division=0)
-    f1_macro = f1_score(y_np_true_binany, y_np_pred_binary, average='macro', zero_division=0)
-    f1_weighted = f1_score(y_np_true_binany, y_np_pred_binary, average='weighted', zero_division=0)
-    accuracy = accuracy_score(y_np_true_binany, y_np_pred_binary)
-    hamming_loss_value = hamming_loss(y_np_true_binany, y_np_pred_binary)
-    emd = emd_compute(y_np_true_binany, y_np_pred_binary)
+def compute_batch_result(y_np_pred_binary, y_np_true_binary):
+    f1_micro = f1_score(y_np_true_binary, y_np_pred_binary, average='micro', zero_division=0)
+    f1_macro = f1_score(y_np_true_binary, y_np_pred_binary, average='macro', zero_division=0)
+    f1_weighted = f1_score(y_np_true_binary, y_np_pred_binary, average='weighted', zero_division=0)
+    accuracy = accuracy_score(y_np_true_binary, y_np_pred_binary)
+    hamming_loss_value = hamming_loss(y_np_true_binary, y_np_pred_binary)
+    emd = emd_compute(y_np_true_binary, y_np_pred_binary)
     result_dict = {}
     result_dict["f1_micro"] = f1_micro
     result_dict["f1_macro"] = f1_macro
@@ -173,9 +172,9 @@ for index, data in tqdm(dev_df.iterrows()):
         predicted_results.append(batch_result_dict)
         batch_predicted_results = []
         batch_true_results = []
-        print("accuracy:",batch_result_dict["accuracy"])
+        print("accuracy:", batch_result_dict["accuracy"])
         print("Micro F1 Score:", batch_result_dict["f1_micro"])
         print("Macro F1 Score:", batch_result_dict["f1_macro"])
         print("Weighted F1 Score:", batch_result_dict["f1_weighted"])
-        print("hamming loss:",batch_result_dict["hamming_loss"])
-        print("emd",batch_result_dict["emd"])
+        print("hamming loss:", batch_result_dict["hamming_loss"])
+        print("emd:", batch_result_dict["emd"])
